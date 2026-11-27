@@ -1,4 +1,4 @@
-CLASS zcl_test_mobile_poc DEFINITION PUBLIC FINAL CREATE PUBLIC.
+CLASS z2ui5_cl_mobile_poc DEFINITION PUBLIC FINAL CREATE PUBLIC.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
@@ -15,7 +15,7 @@ CLASS zcl_test_mobile_poc DEFINITION PUBLIC FINAL CREATE PUBLIC.
 ENDCLASS.
 
 
-CLASS zcl_test_mobile_poc IMPLEMENTATION.
+CLASS z2ui5_cl_mobile_poc IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
 

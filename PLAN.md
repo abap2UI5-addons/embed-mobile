@@ -116,7 +116,7 @@ No SDK dependency yet, so everything builds with stock tooling:
 * iOS shell: WKWebView, endpoint configurable, bridge with `getDeviceInfo`
   and `showToast`; `scanBarcode` rejects with `unsupported` (VisionKit
   DataScanner lands in Phase 3).
-* Sample ABAP app (`abap/src/zcl_test_mobile_poc.clas.abap`); since Phase 3 it
+* Sample ABAP app (`abap/src/z2ui5_cl_mobile_poc.clas.abap`); since Phase 3 it
   scans through the framework control `z2ui5.cc.NativeBridgeScan`.
 
 **Exit criterion:** scan a barcode from an abap2UI5 app running inside the
@@ -161,7 +161,7 @@ The feature that justifies the whole effort. Shipped in this PoC:
   runtime API (`MobileServicesPush.kt`).
 * iOS: APNs registration, token exposed via `getPushToken()`, notification
   tap → deep link (`AppDelegate`).
-* ABAP: `zcl_test_mobile_push` — thin client for the MS backend push API,
+* ABAP: `z2ui5_cl_mobile_push` — thin client for the MS backend push API,
   sends alert + deep-link URL to all devices of a user.
 
 Remaining to activate: Firebase project/`google-services.json`, APNs key +
@@ -228,7 +228,7 @@ Mobile Services (needs Phase-1 SDK onboarding).
   generated `Abap2UI5Shell.xcodeproj`, run on a device/simulator, enter the URL.
 * **ABAP:** pull this repository with abapGit (it installs `abap/src/`;
   requires abap2UI5 with `z2ui5.cc.NativeBridgeScan`), start
-  `zcl_test_mobile_poc` inside the shell, press Scan.
+  `z2ui5_cl_mobile_poc` inside the shell, press Scan.
 
 CI builds both shells on every change, so they compile; what has not been
 done is running them against a real backend. The checks to work through on

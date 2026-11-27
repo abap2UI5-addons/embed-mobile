@@ -1,6 +1,6 @@
 # Contributing
 
-mobile-shell is a proof of concept. It runs abap2UI5 apps on iOS and Android
+embed-mobile is a proof of concept. It runs abap2UI5 apps on iOS and Android
 in a generic native shell: the regular abap2UI5 frontend renders in a
 WebView, and native device features reach it through a small JavaScript
 bridge.
@@ -23,7 +23,7 @@ diff bridge/native-bridge.js ios/Resources/native-bridge.js
 node --test bridge/test/native-bridge.test.js
 
 # ABAP sample, against abap2UI5 main
-npx -y @abaplint/cli@2.120.75 abaplint.json
+npx -y @abaplint/cli@2.120.75 abaplint.jsonc
 
 # Android (JDK 17, Gradle 8.9, Android SDK)
 cd android && gradle testDebugUnitTest && gradle assembleDebug
@@ -36,10 +36,10 @@ cd ios && xcodegen generate
 
 | Workflow | Proves |
 | --- | --- |
-| `abap` | the sample app in `abap/src/` passes abaplint against abap2UI5 `main` |
-| `bridge` | the shim copies are in sync, and the contract tests pass |
-| `build_android` | the shim copy is in sync, the JVM unit tests pass, and a debug APK builds |
-| `build_ios` | the shim copy is in sync, and an unsigned simulator build succeeds |
+| `check-abap` | the sample app in `abap/src/` passes abaplint against abap2UI5 `main` |
+| `check-bridge` | the shim copies are in sync, and the contract tests pass |
+| `build-android` | the shim copy is in sync, the JVM unit tests pass, and a debug APK builds |
+| `build-ios` | the shim copy is in sync, and an unsigned simulator build succeeds |
 
 CI shows that the shells compile and that the bridge keeps its contract. It
 does not show that they work against a backend. That takes a device and the

@@ -25,7 +25,7 @@ in execution order, with dependencies and acceptance criteria.
 
 | Task | Outcome |
 |------|---------|
-| A1 | `build_ios` green. Two causes, not one: XcodeGen writes Xcode project format 77, which the Xcode 15.4 of the `macos-14` image cannot read (→ `macos-15`), and once the compiler was reachable, `BarcodeScanner.swift` failed on the main-actor isolation of `DataScannerViewController`. |
+| A1 | `build-ios` green. Two causes, not one: XcodeGen writes Xcode project format 77, which the Xcode 15.4 of the `macos-14` image cannot read (→ `macos-15`), and once the compiler was reachable, `BarcodeScanner.swift` failed on the main-actor isolation of `DataScannerViewController`. |
 | E1 (partly) | TLS policy enforced on both platforms: Android `network_security_config` (no cleartext, system trust anchors, user CAs in debug builds only) with a commented pinning template, iOS `NSAllowsArbitraryLoads: false`. An `http://` endpoint is refused with an explanation instead of a blank WebView. The **pinning decision itself is still open** (E1 below). |
 | E3 | `app_lock_enabled` manageable by EMM on both platforms; the user toggle disappears and an enforced lock fails closed where no credential is enrolled. |
 | E4 | The Android shell logs the WebView provider/version at start and warns below a documented floor (`WebViewVersion.MINIMUM_MAJOR`). |
@@ -77,7 +77,7 @@ real backend — follow [`TESTING.md`](TESTING.md), which lists the checks
 per platform.
 
 * Run the Android shell on a device/emulator against a real abap2UI5
-  endpoint; execute `zcl_test_mobile_poc` (ZXing scan through
+  endpoint; execute `z2ui5_cl_mobile_poc` (ZXing scan through
   `z2ui5.cc.NativeBridgeScan`), the other methods from the WebView console.
 * Same on iOS (simulator for info/toast; **scan needs a real device** —
   VisionKit DataScanner does not run in the simulator).
@@ -156,7 +156,7 @@ Depends on B (registration call needs the authenticated session).
 * C2. APNs key/cert in MS, `aps-environment` entitlement + signed build
   (needs an Apple Developer team; extend `ios/project.yml` signing).
 * C3. MS push API service key for the backend; configure
-  `zcl_test_mobile_push`.
+  `z2ui5_cl_mobile_push`.
 * C4. End-to-end test: ABAP → MS → device on both platforms, including
   deep link on notification tap (data key `url`) into the correct app. The
   shells open a deep link only on the configured endpoint's origin.
@@ -181,7 +181,7 @@ The maintainer asked to go ahead with the framework integration on
 * D2. **dropped:** `z2ui5_cl_xml_view_cc` sits in the frozen `src/99`
   package and takes no new methods. Apps write the control with
   `z2ui5_cl_ui5_view_builder` (`ns = z2ui5`, `xmlns:z2ui5="z2ui5.cc"`) —
-  see `abap/src/zcl_test_mobile_poc.clas.abap`.
+  see `abap/src/z2ui5_cl_mobile_poc.clas.abap`.
 * D3. Sample app in the samples repo + docs page (extend the mobile
   documentation beyond `mobile_start.html` with the Stage-2 shell) — once
   D1 is released.

@@ -1,4 +1,4 @@
-name: bridge
+name: check-bridge
 
 # The shim is the one piece of the bridge that ships identically to both
 # shells and runs inside customer apps — check its contract on every change,
@@ -8,7 +8,7 @@ on:
   push:
     paths:
       - "bridge/**"
-      - ".github/workflows/bridge.yml"
+      - ".github/workflows/check-bridge.yml"
   pull_request:
     paths:
       - "bridge/**"

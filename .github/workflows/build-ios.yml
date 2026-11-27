@@ -1,4 +1,4 @@
-name: build_ios
+name: build-ios
 
 on:
   push:

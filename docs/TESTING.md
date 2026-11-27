@@ -18,10 +18,10 @@ Record the results in [TEST_PROTOCOL.md](TEST_PROTOCOL.md).
    with abapGit as usual.
 2. This repository as a second abapGit repository (online, or offline as
    ZIP): `.abapgit.xml` points at `abap/src/`, so only the sample
-   `zcl_test_mobile_poc` is installed. The push client in `abap/push/` is
+   `z2ui5_cl_mobile_poc` is installed. The push client in `abap/push/` is
    ABAP Cloud only and not needed before Block C.
 3. Check it in a desktop browser first:
-   `https://<host>/sap/bc/z2ui5?sap-client=<client>&app_start=zcl_test_mobile_poc`
+   `https://<host>/sap/bc/z2ui5?sap-client=<client>&app_start=z2ui5_cl_mobile_poc`
    — the page opens, the scan button is visible (`showInBrowser`) and a press
    shows "Scan failed: native shell not available". That proves backend and
    control before any device is involved.
@@ -32,7 +32,7 @@ Record the results in [TEST_PROTOCOL.md](TEST_PROTOCOL.md).
 
 **Android shell**
 
-* Without a local build: Actions → `build_android` → latest run on `main` →
+* Without a local build: Actions → `build-android` → latest run on `main` →
   artifact `abap2ui5-shell-debug-apk`; unzip and `adb install -r app-debug.apk`
   (or copy the APK to the device and allow installs from unknown sources).
 * With Android Studio: open `android/`, Run. There is no Gradle wrapper in
@@ -44,7 +44,7 @@ Record the results in [TEST_PROTOCOL.md](TEST_PROTOCOL.md).
 
 **iOS shell**
 
-* Simulator without building: Actions → `build_ios` → latest run on `main` →
+* Simulator without building: Actions → `build-ios` → latest run on `main` →
   artifact `abap2ui5-shell-ios-simulator`; unzip,
   `xcrun simctl install booted Abap2UI5Shell.app`,
   `xcrun simctl launch booted org.abap2ui5.Abap2UI5Shell`. Scanning does not
@@ -72,7 +72,7 @@ await abap2ui5Native.getPushToken()             // rejects "unavailable" before 
 
 ## 1. Bridge smoke test (Phase 0 exit criterion)
 
-Start the shell, enter the endpoint and run `zcl_test_mobile_poc`. Its scan
+Start the shell, enter the endpoint and run `z2ui5_cl_mobile_poc`. Its scan
 button is the framework control `z2ui5.cc.NativeBridgeScan` (abap2UI5
 custom controls): the scanned value lands in the input field and a toast,
 a cancel or failure arrives as a "Scan failed: ..." toast.
