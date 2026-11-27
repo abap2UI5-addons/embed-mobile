@@ -16,8 +16,18 @@ enum BarcodeScanner {
         DataScannerViewController.isSupported && DataScannerViewController.isAvailable
     }
 
-    /// completion(value, error) — exactly one of the two is non-nil.
+    /// True from presenting the scanner until its completion has run.
+    private static var isScanning = false
+
+    /// completion(value, error) — exactly one of the two is non-nil. A scan
+    /// while one is open is answered with "busy", as on Android: a second
+    /// scanner would be stacked on the first, and the first call would
+    /// never settle.
     static func present(completion: @escaping (String?, String?) -> Void) {
+        guard !isScanning else {
+            completion(nil, "busy")
+            return
+        }
         guard isSupported else {
             completion(nil, "unsupported")
             return
@@ -26,7 +36,11 @@ enum BarcodeScanner {
             completion(nil, "no presenter")
             return
         }
-        let controller = ScannerController(completion: completion)
+        isScanning = true
+        let controller = ScannerController { value, error in
+            isScanning = false
+            completion(value, error)
+        }
         presenter.present(controller, animated: true) {
             do {
                 try controller.scanner.startScanning()

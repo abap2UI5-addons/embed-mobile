@@ -20,7 +20,7 @@ window.abap2ui5Native = {
   platform: "android" | "ios",
   getDeviceInfo(): Promise<{platform, model, osVersion, appVersion}>,
   showToast(text): Promise<void>,
-  scanBarcode(): Promise<string>,        // rejects: Error("cancelled") | Error("unsupported")
+  scanBarcode(): Promise<string>,        // rejects: Error("cancelled") | Error("unsupported") | Error("busy") while a scan is open
   getPushToken(): Promise<string>,       // FCM token (Android) / APNs hex (iOS); rejects: Error("unavailable")
   biometricConfirm(reason): Promise<boolean>,  // false = user cancelled/failed; rejects: Error("unavailable")
 }
@@ -96,3 +96,11 @@ window.__a2u5BridgeResolve(id, result /* JS value */, error /* string|null */)
 
 `__a2u5BridgeResolve`, `__a2u5Android` and `__a2u5AndroidChannel` are
 private — never call them from app code.
+
+An answer through `__a2u5BridgeResolve` (iOS, and Android's fallback) can
+arrive long after the call — a scan, a biometric prompt. The shells
+remember the main frame's origin when the call is made and deliver the
+answer only while the main frame still has that origin; otherwise it is
+dropped (and logged), so it never reaches a page that did not ask. The
+message channel needs no such check: its reply proxy belongs to the calling
+frame.

@@ -145,6 +145,17 @@ for (const transport of ["android", "android-channel", "ios"]) {
     assert.strictEqual(await scan, "scanned");
   });
 
+  test(`${transport}: a second scan while one is open rejects with busy, the first still settles`, async () => {
+    const { window, bridge, calls } = install(transport);
+    const first = bridge.scanBarcode();
+    const second = bridge.scanBarcode();
+    // both shells answer a scan while their scanner is open with "busy"
+    window.__a2u5BridgeResolve(calls[1].id, null, "busy");
+    await assert.rejects(second, /busy/);
+    window.__a2u5BridgeResolve(calls[0].id, "4006381333931", null);
+    assert.strictEqual(await first, "4006381333931");
+  });
+
   test(`${transport}: settling an unknown id is ignored`, () => {
     const { window } = install(transport);
     assert.doesNotThrow(() => window.__a2u5BridgeResolve("999", "x", null));

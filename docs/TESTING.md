@@ -121,6 +121,9 @@ shells. Lower it temporarily (e.g. 30 seconds) to test in one sitting:
 3. Repeat after the server session really expired — the reload must run the
    backend's auth redirect and land on a usable app, not on a login page
    inside a broken frame.
+4. With the app lock on, both shells must ask for authentication again
+   before the page shows; cancelling it closes the Android shell and leaves
+   iOS on its lock screen with *Unlock*.
 
 Restore the constant afterwards.
 

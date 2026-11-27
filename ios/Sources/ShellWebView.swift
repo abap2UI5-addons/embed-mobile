@@ -1,4 +1,5 @@
 import LocalAuthentication
+import os
 import SwiftUI
 import UIKit
 import WebKit
@@ -103,9 +104,14 @@ struct ShellWebView: UIViewRepresentable {
             // A frame inside the page gets no answer: it would land in the
             // main frame and could settle one of that page's own calls.
             guard message.frameInfo.isMainFrame else { return }
-            guard let allowedOrigin,
-                  Self.origin(of: message.frameInfo) == allowedOrigin else {
-                resolve(id: id, resultJSON: "null", error: "forbidden")
+            // The answer goes back only to a main frame of this origin (see
+            // resolve): a scan or a biometric prompt can outlast the page.
+            let callOrigin = Self.origin(of: message.frameInfo)
+            let answer: (String, String?) -> Void = { [weak self] resultJSON, error in
+                self?.resolve(id: id, callOrigin: callOrigin, resultJSON: resultJSON, error: error)
+            }
+            guard let allowedOrigin, callOrigin == allowedOrigin else {
+                answer("null", "forbidden")
                 return
             }
 
@@ -119,27 +125,27 @@ struct ShellWebView: UIViewRepresentable {
                     "appVersion": Bundle.main
                         .object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0",
                 ]
-                resolve(id: id, resultJSON: jsonString(info), error: nil)
+                answer(jsonString(info), nil)
 
             case "showToast":
                 let text = body["text"] as? String ?? ""
                 showToast(text)
-                resolve(id: id, resultJSON: "null", error: nil)
+                answer("null", nil)
 
             case "scanBarcode":
                 BarcodeScanner.present { [weak self] value, error in
                     if let value {
-                        self?.resolve(id: id, resultJSON: self?.jsonString(value) ?? "null", error: nil)
+                        answer(self?.jsonString(value) ?? "null", nil)
                     } else {
-                        self?.resolve(id: id, resultJSON: "null", error: error ?? "cancelled")
+                        answer("null", error ?? "cancelled")
                     }
                 }
 
             case "getPushToken":
                 if let token = UserDefaults.standard.string(forKey: "push_token") {
-                    resolve(id: id, resultJSON: jsonString(token), error: nil)
+                    answer(jsonString(token), nil)
                 } else {
-                    resolve(id: id, resultJSON: "null", error: "unavailable")
+                    answer("null", "unavailable")
                 }
 
             case "biometricConfirm":
@@ -148,26 +154,39 @@ struct ShellWebView: UIViewRepresentable {
                 let context = LAContext()
                 var laError: NSError?
                 guard context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &laError) else {
-                    resolve(id: id, resultJSON: "null", error: "unavailable")
+                    answer("null", "unavailable")
                     return
                 }
                 context.evaluatePolicy(.deviceOwnerAuthentication,
-                                       localizedReason: reason) { [weak self] success, _ in
-                    self?.resolve(id: id, resultJSON: success ? "true" : "false", error: nil)
+                                       localizedReason: reason) { success, _ in
+                    answer(success ? "true" : "false", nil)
                 }
 
             default:
-                resolve(id: id, resultJSON: "null", error: "unknown method \(method)")
+                answer("null", "unknown method \(method)")
             }
         }
 
-        private func resolve(id: String, resultJSON: String, error: String?) {
+        /// Settles a call through `__a2u5BridgeResolve` — only while the main
+        /// frame still has [callOrigin], the origin it had when the call was
+        /// made. A late answer (a scan, a biometric prompt) after the main
+        /// frame navigated elsewhere would otherwise reach a page that never
+        /// asked, through a function that page can overwrite: it is dropped.
+        private func resolve(id: String, callOrigin: String, resultJSON: String, error: String?) {
             let errorJSON = error.map { jsonString($0) } ?? "null"
             let js = "window.__a2u5BridgeResolve(\(jsonString(id)), \(resultJSON), \(errorJSON))"
             DispatchQueue.main.async { [weak self] in
-                self?.webView?.evaluateJavaScript(js)
+                guard let webView = self?.webView else { return }
+                guard Coordinator.origin(of: webView.url) == callOrigin else {
+                    Coordinator.log.warning(
+                        "Bridge answer \(id, privacy: .public) dropped: the main frame left \(callOrigin, privacy: .public)")
+                    return
+                }
+                webView.evaluateJavaScript(js)
             }
         }
+
+        private static let log = Logger(subsystem: "org.abap2ui5.mobileshell", category: "bridge")
 
         private func jsonString(_ value: Any) -> String {
             guard JSONSerialization.isValidJSONObject([value]),
