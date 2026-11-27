@@ -1,4 +1,4 @@
-CLASS zcl_test_mobile_push DEFINITION PUBLIC FINAL CREATE PUBLIC.
+CLASS z2ui5_cl_mobile_push DEFINITION PUBLIC FINAL CREATE PUBLIC.
 
   PUBLIC SECTION.
 
@@ -41,7 +41,7 @@ CLASS zcl_test_mobile_push DEFINITION PUBLIC FINAL CREATE PUBLIC.
 ENDCLASS.
 
 
-CLASS zcl_test_mobile_push IMPLEMENTATION.
+CLASS z2ui5_cl_mobile_push IMPLEMENTATION.
 
   METHOD constructor.
     mv_host   = iv_host.

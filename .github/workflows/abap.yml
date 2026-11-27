@@ -6,13 +6,13 @@ on:
   push:
     paths:
       - "abap/**"
-      - "abaplint.json"
+      - "abaplint.jsonc"
       - ".abapgit.xml"
       - ".github/workflows/abap.yml"
   pull_request:
     paths:
       - "abap/**"
-      - "abaplint.json"
+      - "abaplint.jsonc"
       - ".abapgit.xml"
   schedule:
     - cron: "17 5 * * 1"
@@ -32,4 +32,4 @@ jobs:
           node-version: "22"
 
       - name: abaplint against abap2UI5 main
-        run: npx -y @abaplint/cli@2.120.75 abaplint.json
+        run: npx -y @abaplint/cli@2.120.75 abaplint.jsonc
