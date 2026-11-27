@@ -25,7 +25,7 @@ in execution order, with dependencies and acceptance criteria.
 
 | Task | Outcome |
 |------|---------|
-| A1 | `build_ios` green. Two causes, not one: XcodeGen writes Xcode project format 77, which the Xcode 15.4 of the `macos-14` image cannot read (→ `macos-15`), and once the compiler was reachable, `BarcodeScanner.swift` failed on the main-actor isolation of `DataScannerViewController`. |
+| A1 | `build-ios` green. Two causes, not one: XcodeGen writes Xcode project format 77, which the Xcode 15.4 of the `macos-14` image cannot read (→ `macos-15`), and once the compiler was reachable, `BarcodeScanner.swift` failed on the main-actor isolation of `DataScannerViewController`. |
 | E1 (partly) | TLS policy enforced on both platforms: Android `network_security_config` (no cleartext, system trust anchors, user CAs in debug builds only) with a commented pinning template, iOS `NSAllowsArbitraryLoads: false`. An `http://` endpoint is refused with an explanation instead of a blank WebView. The **pinning decision itself is still open** (E1 below). |
 | E3 | `app_lock_enabled` manageable by EMM on both platforms; the user toggle disappears and an enforced lock fails closed where no credential is enrolled. |
 | E4 | The Android shell logs the WebView provider/version at start and warns below a documented floor (`WebViewVersion.MINIMUM_MAJOR`). |

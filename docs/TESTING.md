@@ -32,7 +32,7 @@ Record the results in [TEST_PROTOCOL.md](TEST_PROTOCOL.md).
 
 **Android shell**
 
-* Without a local build: Actions → `build_android` → latest run on `main` →
+* Without a local build: Actions → `build-android` → latest run on `main` →
   artifact `abap2ui5-shell-debug-apk`; unzip and `adb install -r app-debug.apk`
   (or copy the APK to the device and allow installs from unknown sources).
 * With Android Studio: open `android/`, Run. There is no Gradle wrapper in
@@ -44,7 +44,7 @@ Record the results in [TEST_PROTOCOL.md](TEST_PROTOCOL.md).
 
 **iOS shell**
 
-* Simulator without building: Actions → `build_ios` → latest run on `main` →
+* Simulator without building: Actions → `build-ios` → latest run on `main` →
   artifact `abap2ui5-shell-ios-simulator`; unzip,
   `xcrun simctl install booted Abap2UI5Shell.app`,
   `xcrun simctl launch booted org.abap2ui5.Abap2UI5Shell`. Scanning does not

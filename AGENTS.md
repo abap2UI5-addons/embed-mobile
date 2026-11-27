@@ -44,14 +44,14 @@ the phase status table and the risks.
 | `abap/src/` | The sample app `z2ui5_cl_mobile_poc`, which abapGit installs |
 | `abap/push/` | `z2ui5_cl_mobile_push`, the Mobile Services push client. ABAP Cloud only, installed by hand |
 | `docs/` | `DISTRIBUTION.md` (managed config, rollout, hardening), `TESTING.md` (device runbook), `TEST_PROTOCOL.md` (its fill-in sheet), `NEXT_STEPS.md` (open work) |
-| `.github/workflows/` | `abap.yml`, `bridge.yml`, `build-android.yml`, `build-ios.yml` (see "Validation") |
+| `.github/workflows/` | `check-abap.yml`, `check-bridge.yml`, `build-android.yml`, `build-ios.yml` (see "Validation") |
 | `.github/dependabot.yml` | GitHub Actions updates, monthly and grouped. Every action is pinned to a commit SHA with the version in a trailing comment |
 
 ## Rules for the bridge
 
 - **Edit `bridge/native-bridge.js` first, then copy it** to
   `android/app/src/main/assets/` and `ios/Resources/`. The three files are
-  byte-identical, and the `bridge`, `build_android` and `build_ios`
+  byte-identical, and the `check-bridge`, `build-android` and `build-ios`
   workflows `diff` them.
 - **The contract follows the rules in `bridge/README.md`.** Apps
   feature-detect `window.abap2ui5Native` and individual methods. Every
@@ -93,7 +93,7 @@ the phase status table and the risks.
   not a default.
 - **iOS: edit `ios/project.yml`, never a generated project.**
   `Abap2UI5Shell.xcodeproj` and `Info.plist` come from
-  `xcodegen generate`. `build_ios` runs on `macos-15`, because current
+  `xcodegen generate`. `build-ios` runs on `macos-15`, because current
   XcodeGen writes a project format the Xcode of `macos-14` cannot open (the
   workflow echoes both versions for that reason).
 - **Android: there is no Gradle wrapper.** CI uses Gradle 8.9 and JDK 17.
@@ -128,7 +128,7 @@ the phase status table and the risks.
 There is no `package.json`. The checks are run directly:
 
 ```bash
-# bridge (what the bridge workflow runs)
+# bridge (what the check-bridge workflow runs)
 diff bridge/native-bridge.js android/app/src/main/assets/native-bridge.js
 diff bridge/native-bridge.js ios/Resources/native-bridge.js
 node --test bridge/test/native-bridge.test.js
@@ -145,10 +145,10 @@ cd ios && xcodegen generate   # then build the Abap2UI5Shell scheme
 
 | Workflow (`name:`) | Runs on | Does |
 |---|---|---|
-| `abap.yml` (`abap`) | changes to `abap/**`, `abaplint.jsonc`, `.abapgit.xml`; weekly; by hand | abaplint against abap2UI5 `main` |
-| `bridge.yml` (`bridge`) | changes to `bridge/**`; by hand | shim copies in sync, contract tests |
-| `build-android.yml` (`build_android`) | changes to `android/**`, `bridge/**`; by hand | shim copy in sync, unit tests, debug APK (artefact `abap2ui5-shell-debug-apk`) |
-| `build-ios.yml` (`build_ios`) | changes to `ios/**`, `bridge/**`; by hand | shim copy in sync, XcodeGen, unsigned simulator build (artefact `abap2ui5-shell-ios-simulator`) |
+| `check-abap.yml` (`check-abap`) | changes to `abap/**`, `abaplint.jsonc`, `.abapgit.xml`; weekly; by hand | abaplint against abap2UI5 `main` |
+| `check-bridge.yml` (`check-bridge`) | changes to `bridge/**`; by hand | shim copies in sync, contract tests |
+| `build-android.yml` (`build-android`) | changes to `android/**`, `bridge/**`; by hand | shim copy in sync, unit tests, debug APK (artefact `abap2ui5-shell-debug-apk`) |
+| `build-ios.yml` (`build-ios`) | changes to `ios/**`, `bridge/**`; by hand | shim copy in sync, XcodeGen, unsigned simulator build (artefact `abap2ui5-shell-ios-simulator`) |
 
 CI proves that the shells compile and that the bridge keeps its contract.
 It does not prove that they work against a backend: that takes a device and
@@ -159,7 +159,7 @@ PLAN.md and docs/NEXT_STEPS.md in the same pull request.
 ## Conventions
 
 - All text files are LF-only, enforced by `.gitattributes`.
-- `.nvmrc` says `22`, the Node version the `abap` and `bridge` workflows
+- `.nvmrc` says `22`, the Node version the `check-abap` and `check-bridge` workflows
   set up.
 - Third-party actions are pinned to a commit SHA, with the version in a
   trailing comment (`uses: actions/checkout@<sha> # v4.4.0`). Dependabot
@@ -167,8 +167,6 @@ PLAN.md and docs/NEXT_STEPS.md in the same pull request.
 - The ecosystem-wide rules (workflow and npm-script naming, toolchain
   versions, which documentation files exist, commit style) live in
   [CONVENTIONS.md](https://github.com/abap2UI5/abap2UI5/blob/main/.github/shared/CONVENTIONS.md)
-  and bind this repository too. Known gaps, each waiting on a decision:
+  and bind this repository too. One known gap, waiting on a decision:
   - There is no `package.json`, so there is no `npm run check` / `npm test`
     (§3) and no `engines.node` (§4).
-  - The workflow file names have no verb prefix (`abap.yml`, `bridge.yml`),
-    and the `name:` keys use snake case (`build_android`) (§2).

@@ -1,4 +1,4 @@
-name: abap
+name: check-abap
 
 # Lints the sample app (abap/src, what abapGit installs) against the current
 # abap2UI5 main - a framework change that breaks the sample shows up here.
@@ -8,7 +8,7 @@ on:
       - "abap/**"
       - "abaplint.jsonc"
       - ".abapgit.xml"
-      - ".github/workflows/abap.yml"
+      - ".github/workflows/check-abap.yml"
   pull_request:
     paths:
       - "abap/**"

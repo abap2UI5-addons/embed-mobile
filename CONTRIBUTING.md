@@ -36,10 +36,10 @@ cd ios && xcodegen generate
 
 | Workflow | Proves |
 | --- | --- |
-| `abap` | the sample app in `abap/src/` passes abaplint against abap2UI5 `main` |
-| `bridge` | the shim copies are in sync, and the contract tests pass |
-| `build_android` | the shim copy is in sync, the JVM unit tests pass, and a debug APK builds |
-| `build_ios` | the shim copy is in sync, and an unsigned simulator build succeeds |
+| `check-abap` | the sample app in `abap/src/` passes abaplint against abap2UI5 `main` |
+| `check-bridge` | the shim copies are in sync, and the contract tests pass |
+| `build-android` | the shim copy is in sync, the JVM unit tests pass, and a debug APK builds |
+| `build-ios` | the shim copy is in sync, and an unsigned simulator build succeeds |
 
 CI shows that the shells compile and that the bridge keeps its contract. It
 does not show that they work against a backend. That takes a device and the
