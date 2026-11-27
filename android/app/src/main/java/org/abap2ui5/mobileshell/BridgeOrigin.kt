@@ -42,6 +42,14 @@ object BridgeOrigin {
         return origin.removeSuffix(if (origin.startsWith("https:")) ":443" else ":80")
     }
 
+    /**
+     * True when [pageUrl] still has [callOrigin] (an [origin] result taken
+     * when a bridge call was made); false when either is unusable. Guards a
+     * late bridge answer against a main frame that navigated meanwhile.
+     */
+    fun isSameOrigin(pageUrl: String?, callOrigin: String?): Boolean =
+        callOrigin != null && origin(pageUrl) == callOrigin
+
     /** True when [pageUrl] has the origin of [endpointUrl]; false when either is unusable. */
     fun isAllowed(pageUrl: String?, endpointUrl: String?): Boolean {
         val endpoint = origin(endpointUrl) ?: return false

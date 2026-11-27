@@ -57,6 +57,19 @@ class BridgeOriginTest {
     }
 
     @Test
+    fun `a late answer goes only to a main frame that kept the call's origin`() {
+        val callOrigin = BridgeOrigin.origin("https://host.example.com/sap/bc/z2ui5?app=x")
+        assertEquals("https://host.example.com:443", callOrigin)
+        assertTrue(BridgeOrigin.isSameOrigin("https://HOST.example.com:443/sap/bc/z2ui5#/detail", callOrigin))
+        assertFalse(BridgeOrigin.isSameOrigin("https://idp.example.com/saml/login", callOrigin))
+        assertFalse(BridgeOrigin.isSameOrigin("https://host.example.com:8443/x", callOrigin))
+        assertFalse(BridgeOrigin.isSameOrigin("about:blank", callOrigin))
+        assertFalse(BridgeOrigin.isSameOrigin(null, callOrigin))
+        // a call made while the main frame had no usable origin is never answered
+        assertFalse(BridgeOrigin.isSameOrigin("https://host.example.com/", null))
+    }
+
+    @Test
     fun `the allowed-origin rule names the endpoint origin`() {
         assertEquals("https://host.example.com", BridgeOrigin.allowedOriginRule(endpoint))
         assertEquals("https://host.example.com", BridgeOrigin.allowedOriginRule("https://HOST.example.com:443/x"))

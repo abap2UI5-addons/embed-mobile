@@ -17,11 +17,18 @@
             android:name="android.content.APP_RESTRICTIONS"
             android:resource="@xml/app_restrictions" />
 
+        <!-- configChanges: the activity, and with it the WebView, survives a
+             rotation, a dark-mode switch (uiMode), split-screen and folding
+             (screenLayout, smallestScreenSize). A recreation would build a
+             new WebView, lose unsent input and a pending scan result and
+             run the app lock again. AppCompat updates the resources itself
+             for uiMode, and the WebView gets the change through the view
+             hierarchy, so there is no onConfigurationChanged to override. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
-            android:configChanges="orientation|screenSize|keyboardHidden">
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|uiMode">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

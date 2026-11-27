@@ -85,7 +85,9 @@ the phase status table and the risks.
   method. Both check before injecting the shim. iOS checks the message's
   frame and security origin. A new bridge method goes into both Android
   transports (`BridgeMessage` is the channel's wire format) and keeps the
-  check on both platforms.
+  check on both platforms. An answer through `__a2u5BridgeResolve` (iOS,
+  Android's fallback) is bound to the main frame's origin at call time and
+  dropped when the main frame has another one by the time it arrives.
 - **HTTPS only.** Android's `network_security_config.xml` allows no
   cleartext, and iOS sets `NSAllowsArbitraryLoads: false` in `project.yml`.
   Adding an exception has to be a deliberate, documented edit.

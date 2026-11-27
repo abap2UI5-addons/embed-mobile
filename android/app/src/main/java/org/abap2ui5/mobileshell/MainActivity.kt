@@ -11,6 +11,7 @@ import android.os.SystemClock
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.view.WindowManager
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
@@ -64,6 +65,14 @@ class MainActivity : AppCompatActivity() {
      */
     @Volatile
     private var bridgeAllowed = false
+
+    /**
+     * Origin (`scheme://host:port`) of the page in the main frame, written
+     * with [bridgeAllowed]. A fallback-transport call remembers it, and its
+     * answer is delivered only while the main frame still has that origin.
+     */
+    @Volatile
+    private var mainFrameOrigin: String? = null
 
     /** The allowed-origin rule the message channel is registered with, null when it is not. */
     private var channelRule: String? = null
@@ -124,10 +133,12 @@ class MainActivity : AppCompatActivity() {
             // WebView's cookie store. Only pages of the endpoint's origin
             // get the bridge.
             override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
+                mainFrameOrigin = BridgeOrigin.origin(url)
                 bridgeAllowed = BridgeOrigin.isAllowed(url, endpointUrl())
             }
 
             override fun onPageFinished(view: WebView, url: String) {
+                mainFrameOrigin = BridgeOrigin.origin(view.url)
                 bridgeAllowed = BridgeOrigin.isAllowed(view.url, endpointUrl())
                 if (bridgeAllowed) {
                     view.evaluateJavascript(loadAsset("native-bridge.js"), null)
@@ -143,18 +154,19 @@ class MainActivity : AppCompatActivity() {
         installBridgeTransport()
 
         if (AppLock.isEnabled(this)) {
-            AppLock.gate(this,
-                onSuccess = { start() },
-                onFailure = { reason ->
-                    if (reason == AppLock.Failure.NO_AUTHENTICATOR) {
-                        Toast.makeText(this, getString(R.string.app_lock_required_no_credential),
-                            Toast.LENGTH_LONG).show()
-                    }
-                    finish()
-                })
+            AppLock.gate(this, onSuccess = { start() }, onFailure = ::lockFailed)
         } else {
             start()
         }
+    }
+
+    /** The app lock was not passed: an enforced lock without a credential says why; the shell closes. */
+    private fun lockFailed(reason: AppLock.Failure) {
+        if (reason == AppLock.Failure.NO_AUTHENTICATOR) {
+            Toast.makeText(this, getString(R.string.app_lock_required_no_credential),
+                Toast.LENGTH_LONG).show()
+        }
+        finish()
     }
 
     private fun start() {
@@ -203,11 +215,27 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         // After a long background stay the abap2UI5 draft session and the
         // auth session are likely gone — reload instead of resuming a dead
-        // SPA (risk 3 in PLAN.md).
+        // SPA (risk 3 in PLAN.md), and re-gate the app lock first, like
+        // iOS: the page stays hidden until the user authenticates, and a
+        // failed gate closes the shell as it does at start.
         if (pausedAt > 0 && SystemClock.elapsedRealtime() - pausedAt > BACKGROUND_RELOAD_MS) {
-            endpointUrl()?.let { webView.loadUrl(it) }
+            if (AppLock.isEnabled(this)) {
+                webView.visibility = View.INVISIBLE
+                AppLock.gate(this,
+                    onSuccess = {
+                        webView.visibility = View.VISIBLE
+                        reloadEndpoint()
+                    },
+                    onFailure = ::lockFailed)
+            } else {
+                reloadEndpoint()
+            }
         }
         pausedAt = 0
+    }
+
+    private fun reloadEndpoint() {
+        endpointUrl()?.let { webView.loadUrl(it) }
     }
 
     // Managed settings are not offered in the UI: an EMM-pushed endpoint
@@ -357,12 +385,25 @@ class MainActivity : AppCompatActivity() {
     private fun loadAsset(name: String): String =
         assets.open(name).bufferedReader().use { it.readText() }
 
-    /** Settle a pending bridge promise of the fallback transport through `__a2u5BridgeResolve`. */
-    private fun resolveBridge(id: String, result: Any?, error: String?) {
+    /**
+     * Settle a pending bridge promise of the fallback transport through
+     * `__a2u5BridgeResolve`. [callOrigin] is the main frame's origin when
+     * the call was made: a late answer (a scan, a biometric prompt) after
+     * the main frame navigated elsewhere would reach a page that never
+     * asked — and `__a2u5BridgeResolve` is writable by that page — so it is
+     * dropped unless the main frame still has that origin.
+     */
+    private fun resolveBridge(id: String, callOrigin: String?, result: Any?, error: String?) {
         val errorLiteral = if (error == null) "null" else JSONObject.quote(error)
         val js = "window.__a2u5BridgeResolve(${JSONObject.quote(id)}, " +
             "${BridgeMessage.literal(result)}, $errorLiteral)"
-        runOnUiThread { webView.evaluateJavascript(js, null) }
+        runOnUiThread {
+            if (!BridgeOrigin.isSameOrigin(webView.url, callOrigin)) {
+                Log.w(TAG, "Bridge answer $id dropped: the main frame left $callOrigin")
+                return@runOnUiThread
+            }
+            webView.evaluateJavascript(js, null)
+        }
     }
 
     /**
@@ -431,7 +472,11 @@ class MainActivity : AppCompatActivity() {
             if (!bridgeAllowed) throw SecurityException("forbidden")
         }
 
-        private fun replyTo(id: String) = Reply { result, error -> resolveBridge(id, result, error) }
+        /** The answer's way back, bound to the main frame's origin at call time. */
+        private fun replyTo(id: String): Reply {
+            val callOrigin = mainFrameOrigin
+            return Reply { result, error -> resolveBridge(id, callOrigin, result, error) }
+        }
 
         @JavascriptInterface
         fun platformInfo(): String {
